@@ -37,7 +37,7 @@ var splitterCounter = 0;
  $.fn.splitter = function(args) {
   args = args || {};
   return this.each(function() {
-    if ( $(this).is(".splitter") ) { // already a splitter
+    if ($(this).is(".splitter")) { // already a splitter
       return;
     }
     var zombie;   // left-behind splitbar for outline resizes
@@ -45,11 +45,11 @@ var splitterCounter = 0;
       bar.removeClass(opts.barStateClasses).addClass(state);
     }
     function startSplitMouse(evt) {
-      if ( evt.which != 1 ) {
+      if (evt.which != 1) {
         return;   // left button only
       }
       bar.removeClass(opts.barHoverClass);
-      if ( opts.outline ) {
+      if (opts.outline) {
         zombie = zombie || bar.clone(false).insertAfter(A);
         bar.removeClass(opts.barDockedClass);
       }
@@ -66,10 +66,10 @@ var splitterCounter = 0;
         range = Math.max(0, Math.min(pos, splitter._DA - bar._DA)),
         limit = Math.max(A._min, splitter._DA - B._max, 
             Math.min(pos, A._max, splitter._DA - bar._DA - B._min));
-      if ( opts.outline ) {
+      if (opts.outline) {
         // Let docking splitbar be dragged to the dock position, even if min width applies
-        if ( (opts.dockPane == A && pos < Math.max(A._min, bar._DA))  || 
-           (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min)) ) {
+        if ((opts.dockPane == A && pos < Math.max(A._min, bar._DA))  || 
+           (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min))) {
           bar.addClass(opts.barDockedClass).css(opts.origin, range);
         }
         else {
@@ -85,7 +85,7 @@ var splitterCounter = 0;
       setBarState(opts.barNormalClass);
       bar.addClass(opts.barHoverClass);
       var pos = A._posSplit + evt[opts.eventPos];
-      if ( opts.outline ) {
+      if (opts.outline) {
         zombie.remove(); zombie = null;
         resplit(pos);
       }
@@ -96,12 +96,12 @@ var splitterCounter = 0;
     function resplit(pos) {
       bar._DA = bar[0][opts.pxSplit];   // bar size may change during dock
       // Constrain new splitbar position to fit pane size and docking limits
-      if ( (opts.dockPane == A && pos < Math.max(A._min, bar._DA)) ||
-         (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min)) ) {
+      if ((opts.dockPane == A && pos < Math.max(A._min, bar._DA)) ||
+         (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min))) {
         bar.addClass(opts.barDockedClass);
         bar._DA = bar[0][opts.pxSplit];
         pos = opts.dockPane == A ? 0 : splitter._DA - bar._DA;
-        if ( bar._pos == null ) {
+        if (bar._pos == null) {
           bar._pos = A[0][opts.pxSplit];
         }
       } else {
@@ -117,21 +117,21 @@ var splitterCounter = 0;
       B.css(opts.origin, pos + bar._DA)
         .css(opts.split, splitter._DA - bar._DA - pos).css(opts.fixed,  splitter._DF);
       // IE fires resize for us; all others pay cash
-      if ( !browser_resize_auto_fired() ) {
+      if (!browser_resize_auto_fired()) {
         panes.trigger("resize");
       }
     }
     function dimSum(jq, dims) {
       // Opera returns -1 for missing min/max width, turn into 0
       var sum = 0;
-      for ( var i=1; i < arguments.length; i++ ) {
+      for (var i=1; i < arguments.length; i++) {
         sum += Math.max(parseInt(jq.css(arguments[i]), 10) || 0, 0);
       }
       return sum;
     }
     
     // Determine settings based on incoming opts, element classes, and defaults
-    var vh = (args.splitHorizontal? 'h' : args.splitVertical? 'v' : args.type) || 'v';
+    var vh = (args.splitHorizontal ? 'h' : (args.splitVertical ? 'v' : args.type)) || 'v';
     var opts = $.extend({
       // Defaults here allow easy use with ThemeRoller
       splitterClass:  "splitter ui-widget ui-widget-content",
@@ -199,7 +199,7 @@ var splitterCounter = 0;
       .bind("keydown" + opts.eventNamespace, function(e) {
         var key = e.which || e.keyCode;
         var dir = (key == opts["key" + opts.side1]) ? 1 : (key == opts["key" + opts.side2]) ? -1 : 0;
-        if ( dir ) {
+        if (dir) {
           resplit(A[0][opts.pxSplit] + dir * opts.pxPerKey, false);
         }
       })
@@ -228,7 +228,7 @@ var splitterCounter = 0;
         $(this).removeClass(opts.barHoverClass);
       });
     // Use our cursor unless the style specifies a non-default cursor
-    if ( /^(auto|default|)$/.test(bar.css("cursor")) ) {
+    if (/^(auto|default|)$/.test(bar.css("cursor"))) {
       bar.css("cursor", opts.cursor);
     }
 
@@ -250,11 +250,11 @@ var splitterCounter = 0;
     
     // Determine initial position, get from cookie if specified
     var initPos = A._init;
-    if ( !isNaN(B._init) ) { // recalc initial B size as an offset from the top or left side
+    if (!isNaN(B._init)) { // recalc initial B size as an offset from the top or left side
       initPos = splitter[0][opts.pxSplit] - splitter._PBA - B._init - bar._DA;
     }
-    if ( opts.cookie ) {
-      if ( !$.cookie ) {
+    if (opts.cookie) {
+      if (!$.cookie) {
         alert('jQuery.splitter(): jQuery cookie plugin required');
       }
       initPos = parseInt($.cookie(opts.cookie),10);
@@ -266,15 +266,15 @@ var splitterCounter = 0;
         });
       });
     }
-    if ( isNaN(initPos) ) {// King Solomon's algorithm
+    if (isNaN(initPos)) {// King Solomon's algorithm
       initPos = Math.round((splitter[0][opts.pxSplit] - splitter._PBA - bar._DA) / 2);
     }
 
     // Resize event propagation and splitter sizing
-    if ( opts.anchorToWindow ) {
+    if (opts.anchorToWindow) {
       opts.resizeTo = window;
     }
-    if ( opts.resizeTo ) {
+    if (opts.resizeTo) {
       splitter._hadjust = dimSum(splitter, "borderTopWidth", "borderBottomWidth", "marginBottom");
       splitter._hmin = Math.max(dimSum(splitter, "minHeight"), 20);
       
@@ -282,35 +282,36 @@ var splitterCounter = 0;
         if (e.target == window) {
           var top = splitter.offset().top,
               eh = $(opts.resizeTo).height();
+
           splitter.css("height", Math.max(eh - top - splitter._hadjust, splitter._hmin) + "px");
           if (!browser_resize_auto_fired()) {
             splitter.trigger("resize");
           }
         }
-      }).trigger("resize" + opts.eventNamespace);
+      })
+      .trigger("resize" + opts.eventNamespace);
     }
-    else if ( opts.resizeToWidth && !$.browser.msie ) {
+    else if (opts.resizeToWidth && !$.browser.msie) {
       $(window).bind("resize" + opts.eventNamespace, function() {
         splitter.trigger("resize");
       });
     }
 
     // Docking support
-    if ( opts.dock ) {
+    if (opts.dock) {
       splitter
         .bind("toggleDock" + opts.eventNamespace, function() {
-          var pw = opts.dockPane[0][opts.pxSplit];
-          splitter.trigger(pw ? "dock" : "undock");
+          splitter.trigger((opts.dockPane[0][opts.pxSplit]) ? "dock" : "undock");
         })
         .bind("dock" + opts.eventNamespace, function() {
           var pw = A[0][opts.pxSplit]; 
-          if ( !pw ) {
+          if (!pw) {
             return;
           }
           bar._pos = pw;
-          var x={}; 
+          var x = {}; 
           x[opts.origin] = opts.dockPane == A ? 0 :
-            splitter[0][opts.pxSplit] - splitter._PBA - bar[0][opts.pxSplit];
+            (splitter[0][opts.pxSplit] - splitter._PBA - bar[0][opts.pxSplit]);
           bar.animate(x, opts.dockSpeed || 1, opts.dockEasing, function() {
             bar.addClass(opts.barDockedClass);
             resplit(x[opts.origin]);
@@ -318,7 +319,7 @@ var splitterCounter = 0;
         })
         .bind("undock" + opts.eventNamespace, function() {
           var pw = opts.dockPane[0][opts.pxSplit];
-          if ( pw ) {
+          if (pw) {
             return;
           }
           var x={};
@@ -329,7 +330,7 @@ var splitterCounter = 0;
               bar._pos = null;
             });
         });
-      if ( opts.dockKey ) {
+      if (opts.dockKey) {
         $('<a title="' + opts.splitbarClass + ' toggle dock" href="javascript:void(0)"></a>')
           .attr({
             accessKey: opts.dockKey,
@@ -346,7 +347,6 @@ var splitterCounter = 0;
       });
     }
 
-    
     // Resize event handler; triggered immediately to set initial position
     splitter
       .bind("destroy" + opts.eventNamespace, function() {
@@ -364,7 +364,7 @@ var splitterCounter = 0;
       })
       .bind("resize" + opts.eventNamespace, function(e, size) {
         // Custom events bubble in jQuery 1.3; avoid recursion
-        if ( e.target != this ) {
+        if (e.target != this) {
           return;
         }
         
@@ -373,7 +373,7 @@ var splitterCounter = 0;
         splitter._DA = splitter[0][opts.pxSplit] - splitter._PBA;
         
         // Bail if splitter isn't visible or content isn't there yet
-        if ( splitter._DF <= 0 || splitter._DA <= 0 ) {
+        if (splitter._DF <= 0 || splitter._DA <= 0) {
           return;
         }
         
