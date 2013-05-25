@@ -30,37 +30,21 @@
  * @return jQuery
  * @author Dave Methvin (dave.methvin@gmail.com)
  */
- ;(function($) {
+;(function($) {
 
 var splitterCounter = 0;
 
- $.fn.splitter = function(args) {
+$.fn.splitter = function(args) {
   args = args || {};
   return this.each(function() {
-    if ($(this).is(".splitter")) { // already a splitter
-      return;
-    }
+    // Check if already a splitter
+    if ($(this).is(".splitter")) { return; } // already a splitter
+
+
     var zombie;   // left-behind splitbar for outline resizes
     function setBarState(state) {
       bar.removeClass(opts.barStateClasses)
         .addClass(state);
-    }
-    function startSplitMouse(evt) {
-      if (evt.which != 1) {
-        return;   // left button only
-      }
-      bar.removeClass(opts.barHoverClass);
-      if (opts.outline) {
-        zombie = zombie || bar.clone().insertAfter(A);
-        bar.removeClass(opts.barDockedClass);
-      }
-      setBarState(opts.barActiveClass);
-      // Safari selects A/B text on a move; iframes capture mouse events so hide them
-      panes.css("-webkit-user-select", "none").find("iframe").addClass(opts.iframeClass);
-      A._posSplit = A[0][opts.pxSplit] - evt[opts.eventPos];
-      $(document)
-        .bind("mousemove" + opts.eventNamespace, doSplitMouse)
-        .bind("mouseup" + opts.eventNamespace, endSplitMouse);
     }
     function doSplitMouse(evt) {
       var pos = A._posSplit + evt[opts.eventPos],
@@ -201,7 +185,7 @@ var splitterCounter = 0;
     opts.dockPane = opts.dock && (/right|bottom/.test(opts.dock)? B:A);
 
     // Focuser element, provides keyboard support; title is shown by Opera accessKeys
-    var focuser = $('<a></a>')
+    var focuser = $('<a />')
       .attr({
         accessKey: opts.accessKey,
         tabIndex: opts.tabIndex,
@@ -211,19 +195,22 @@ var splitterCounter = 0;
         this.focus();
         bar.addClass(opts.barActiveClass);
       })
-      .bind("keydown" + opts.eventNamespace, function(e) {
+      .bind("blur" + opts.eventNamespace, function() {
+        bar.removeClass(opts.barActiveClass);
+      });
+
+    if(opts.accessKey !== '') {
+      focuser.bind("keydown" + opts.eventNamespace, function(e) {
         var key = e.which || e.keyCode;
         var dir = (key == opts["key" + opts.side1]) ? 1 : ((key == opts["key" + opts.side2]) ? -1 : 0);
         if (dir) {
           resplit(A[0][opts.pxSplit] + dir * opts.pxPerKey, false);
         }
-      })
-      .bind("blur" + opts.eventNamespace, function() {
-        bar.removeClass(opts.barActiveClass);
       });
+    }
       
     // Splitbar element
-    var bar = $('<div></div>')
+    var bar = $('<div />')
       .insertAfter(A)
       .addClass(opts.barClass + ' ' + opts.barStateClass)
       .append(focuser)
@@ -236,7 +223,26 @@ var splitterCounter = 0;
         "-moz-user-select": "none",
         "z-index": "100"
       })
-      .bind("mousedown" + opts.eventNamespace, startSplitMouse)
+      .bind("mousedown" + opts.eventNamespace, function (evt) {
+        if (evt.which != 1) {
+          return;   // left button only
+        }
+        bar.removeClass(opts.barHoverClass);
+        if (opts.outline) {
+          zombie = zombie || bar.clone().insertAfter(A);
+          bar.removeClass(opts.barDockedClass);
+        }
+        setBarState(opts.barActiveClass);
+        
+        // Safari selects A/B text on a move; iframes capture mouse events so hide them
+        panes.css("-webkit-user-select", "none")
+          .find("iframe").addClass(opts.iframeClass);
+        
+        A._posSplit = A[0][opts.pxSplit] - evt[opts.eventPos];
+        $(document)
+          .bind("mousemove" + opts.eventNamespace, doSplitMouse)
+          .bind("mouseup" + opts.eventNamespace, endSplitMouse);
+      })
       .bind("mouseover" + opts.eventNamespace, function() {
         $(this).addClass(opts.barHoverClass);
       })
@@ -306,8 +312,7 @@ var splitterCounter = 0;
         }
       })
       .trigger("resize" + opts.eventNamespace);
-    }
-    else if (opts.resizeToWidth && !$.browser.msie) {
+    } else if (opts.resizeToWidth && !$.browser.msie) {
       $(window).bind("resize" + opts.eventNamespace, function() {
         splitter.trigger("resize");
       });
@@ -321,9 +326,8 @@ var splitterCounter = 0;
         })
         .bind("dock" + opts.eventNamespace, function() {
           var pw = A[0][opts.pxSplit]; 
-          if (!pw) {
-            return;
-          }
+          if (!pw) { return; }
+
           bar._pos = pw;
           var x = {}; 
           x[opts.origin] = opts.dockPane == A ? 0 :
@@ -335,10 +339,9 @@ var splitterCounter = 0;
         })
         .bind("undock" + opts.eventNamespace, function() {
           var pw = opts.dockPane[0][opts.pxSplit];
-          if (pw) {
-            return;
-          }
-          var x={};
+          if (pw) { return; }
+
+          var x = {};
           x[opts.origin] = bar._pos + "px";
           bar.removeClass(opts.barDockedClass)
             .animate(x, opts.undockSpeed, opts.undockEasing || opts.dockEasing, function() {
@@ -346,6 +349,7 @@ var splitterCounter = 0;
               bar._pos = null;
             });
         });
+
       if (opts.dockKey) {
         $('<a title="' + opts.splitbarClass + ' toggle dock"></a>')
           .attr({
