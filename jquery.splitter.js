@@ -53,7 +53,7 @@ var splitterCounter = 0;
         zombie = zombie || bar.clone(false).insertAfter(A);
         bar.removeClass(opts.barDockedClass);
       }
-      setBarState(opts.barActiveClass)
+      setBarState(opts.barActiveClass);
       // Safari selects A/B text on a move; iframes capture mouse events so hide them
       panes.css("-webkit-user-select", "none").find("iframe").addClass(opts.iframeClass);
       A._posSplit = A[0][opts.pxSplit] - evt[opts.eventPos];
@@ -70,15 +70,16 @@ var splitterCounter = 0;
         // Let docking splitbar be dragged to the dock position, even if min width applies
         if ( (opts.dockPane == A && pos < Math.max(A._min, bar._DA))  || 
            (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min)) ) {
-          bar.addClass(opts.barDockedClass).css(DanaGetOrigin(opts), range);
+          bar.addClass(opts.barDockedClass).css(opts.origin, range);
         }
         else {
-          bar.removeClass(opts.barDockedClass).css(DanaGetOrigin(opts), limit);
+          bar.removeClass(opts.barDockedClass).css(opts.origin, limit);
         }
         bar._DA = bar[0][opts.pxSplit];
-      } else 
+      } else {
         resplit(pos);
-      setBarState(pos == limit? opts.barActiveClass : opts.barLimitClass);
+      }
+      setBarState(pos == limit ? opts.barActiveClass : opts.barLimitClass);
     }
     function endSplitMouse(evt) {
       setBarState(opts.barNormalClass);
@@ -111,9 +112,9 @@ var splitterCounter = 0;
             Math.min(pos, A._max, splitter._DA - bar._DA - B._min));
       }
       // Resize/position the two panes
-      bar.css(DanaGetOrigin(opts), pos).css(opts.fixed, splitter._DF);
-      A.css(DanaGetOrigin(opts), 0).css(opts.split, pos).css(opts.fixed,  splitter._DF);
-      B.css(DanaGetOrigin(opts), pos + bar._DA)
+      bar.css(opts.origin, pos).css(opts.fixed, splitter._DF);
+      A.css(opts.origin, 0).css(opts.split, pos).css(opts.fixed,  splitter._DF);
+      B.css(opts.origin, pos + bar._DA)
         .css(opts.split, splitter._DA - bar._DA - pos).css(opts.fixed,  splitter._DF);
       // IE fires resize for us; all others pay cash
       if ( !browser_resize_auto_fired() ) {
@@ -186,8 +187,12 @@ var splitterCounter = 0;
     opts.dockPane = opts.dock && (/right|bottom/.test(opts.dock)? B:A);
 
     // Focuser element, provides keyboard support; title is shown by Opera accessKeys
-    var focuser = DanaMethodAttr("attr", $('<a href="javascript:void(0)"></a>')
-      ,{accessKey: opts.accessKey, tabIndex: opts.tabIndex, title: opts.splitbarClass})
+    var focuser = $('<a href="javascript:void(0)"></a>')
+      .attr({
+        accessKey: opts.accessKey,
+        tabIndex: opts.tabIndex,
+        title: opts.splitbarClass
+      })
       .bind(($.browser.opera ? "click" : "focus") + opts.eventNamespace, function() {
         this.focus(); bar.addClass(opts.barActiveClass);
       })
@@ -203,9 +208,10 @@ var splitterCounter = 0;
       });
       
     // Splitbar element
-    var bar = DanaMethodAttr("attr", $('<div></div>')
+    var bar = $('<div></div>')
       .insertAfter(A).addClass(opts.barClass).addClass(opts.barStateClass)
-      .append(focuser),{unselectable: "on"})
+      .append(focuser)
+      .attr({unselectable: "on"})
       .css({
         position: "absolute",
         "user-select": "none",
@@ -222,8 +228,9 @@ var splitterCounter = 0;
         $(this).removeClass(opts.barHoverClass);
       });
     // Use our cursor unless the style specifies a non-default cursor
-    if ( /^(auto|default|)$/.test(bar.css("cursor")) )
+    if ( /^(auto|default|)$/.test(bar.css("cursor")) ) {
       bar.css("cursor", opts.cursor);
+    }
 
     // Cache several dimensions for speed, rather than re-querying constantly
     // These are saved on the A/B/bar/splitter jQuery vars, which are themselves cached
@@ -243,34 +250,42 @@ var splitterCounter = 0;
     
     // Determine initial position, get from cookie if specified
     var initPos = A._init;
-    if ( !isNaN(B._init) )  // recalc initial B size as an offset from the top or left side
+    if ( !isNaN(B._init) ) { // recalc initial B size as an offset from the top or left side
       initPos = splitter[0][opts.pxSplit] - splitter._PBA - B._init - bar._DA;
-    if ( DanaGetCookie(opts) ) {
-      if ( !DanaGetCookie($) )
+    }
+    if ( opts.cookie ) {
+      if ( !$.cookie ) {
         alert('jQuery.splitter(): jQuery cookie plugin required');
-      initPos = parseInt($.cookie(DanaGetCookie(opts)),10);
+      }
+      initPos = parseInt($.cookie(opts.cookie),10);
       $(window).bind("unload" + opts.eventNamespace, function() {
-        var state = String(DanaStringCheckLink(bar.css(DanaGetOrigin(opts)))); // current location of splitbar
-        $.cookie(DanaGetCookie(opts), state, {expires: opts.cookieExpires || 365, 
-          path: opts.cookiePath || DanaGetPathname(document.location)});
+        var state = String(bar.css(opts.origin)); // current location of splitbar
+        $.cookie(opts.cookie, state, {
+          expires: opts.cookieExpires || 365, 
+          path: opts.cookiePath || document.location.pathname
+        });
       });
     }
-    if ( isNaN(initPos) ) // King Solomon's algorithm
-      initPos = Math.round((splitter[0][opts.pxSplit] - splitter._PBA - bar._DA)/2);
+    if ( isNaN(initPos) ) {// King Solomon's algorithm
+      initPos = Math.round((splitter[0][opts.pxSplit] - splitter._PBA - bar._DA) / 2);
+    }
 
     // Resize event propagation and splitter sizing
-    if ( opts.anchorToWindow )
+    if ( opts.anchorToWindow ) {
       opts.resizeTo = window;
+    }
     if ( opts.resizeTo ) {
       splitter._hadjust = dimSum(splitter, "borderTopWidth", "borderBottomWidth", "marginBottom");
       splitter._hmin = Math.max(dimSum(splitter, "minHeight"), 20);
       
       $(window).bind("resize" + opts.eventNamespace, function (e) {
         if (e.target == window) {
-          var top = splitter.offset().top;
-          var eh = $(opts.resizeTo).height();
+          var top = splitter.offset().top,
+              eh = $(opts.resizeTo).height();
           splitter.css("height", Math.max(eh - top - splitter._hadjust, splitter._hmin) + "px");
-          if (!browser_resize_auto_fired()) splitter.trigger("resize");
+          if (!browser_resize_auto_fired()) {
+            splitter.trigger("resize");
+          }
         }
       }).trigger("resize" + opts.eventNamespace);
     }
@@ -285,33 +300,42 @@ var splitterCounter = 0;
       splitter
         .bind("toggleDock" + opts.eventNamespace, function() {
           var pw = opts.dockPane[0][opts.pxSplit];
-          splitter.trigger(pw?"dock":"undock");
+          splitter.trigger(pw ? "dock" : "undock");
         })
         .bind("dock" + opts.eventNamespace, function() {
           var pw = A[0][opts.pxSplit]; 
-          if ( !pw ) return;
+          if ( !pw ) {
+            return;
+          }
           bar._pos = pw;
           var x={}; 
-          x[DanaGetOrigin(opts)] = opts.dockPane == A? 0 :
+          x[opts.origin] = opts.dockPane == A ? 0 :
             splitter[0][opts.pxSplit] - splitter._PBA - bar[0][opts.pxSplit];
-          bar.animate(x, opts.dockSpeed||1, opts.dockEasing, function() {
+          bar.animate(x, opts.dockSpeed || 1, opts.dockEasing, function() {
             bar.addClass(opts.barDockedClass);
-            resplit(x[DanaGetOrigin(opts)]);
+            resplit(x[opts.origin]);
           });
         })
         .bind("undock" + opts.eventNamespace, function() {
           var pw = opts.dockPane[0][opts.pxSplit];
-          if ( pw ) return;
-          var x={}; x[DanaGetOrigin(opts)]=bar._pos + "px";
+          if ( pw ) {
+            return;
+          }
+          var x={};
+          x[opts.origin] = bar._pos + "px";
           bar.removeClass(opts.barDockedClass)
-            .animate(x, opts.undockSpeed||opts.dockSpeed||1, opts.undockEasing||opts.dockEasing, function() {
+            .animate(x, opts.undockSpeed || opts.dockSpeed || 1, opts.undockEasing || opts.dockEasing, function() {
               resplit(bar._pos);
               bar._pos = null;
             });
         });
       if ( opts.dockKey ) {
-        DanaMethodAttr("attr", $('<a title="' + opts.splitbarClass + ' toggle dock" href="javascript:void(0)"></a>')
-          ,{accessKey: opts.dockKey, tabIndex: -1}).appendTo(bar)
+        $('<a title="' + opts.splitbarClass + ' toggle dock" href="javascript:void(0)"></a>')
+          .attr({
+            accessKey: opts.dockKey,
+            tabIndex: -1
+          })
+          .appendTo(bar)
           .bind($.browser.opera ? "click" : "focus", function() { 
             splitter.trigger("toggleDock");
             this.blur();
@@ -319,7 +343,7 @@ var splitterCounter = 0;
       }
       bar.bind("dblclick", function() {
         splitter.trigger("toggleDock");
-      })
+      });
     }
 
     
@@ -329,11 +353,11 @@ var splitterCounter = 0;
         $([window, document]).unbind(opts.eventNamespace);
         bar.unbind().remove();
         panes.removeClass(opts.paneClass);
-        DanaMethodAttr("attr", DanaMethodAdd("add", splitter
+        splitter
           .removeClass(opts.splitterClass)
-          ,panes)
+          .add(panes)
             .unbind(opts.eventNamespace)
-            ,"style", function(el) {
+            .attr("style", function() {
               return this._splitter_style || "";  //TODO: save style
             });
         splitter = bar = focuser = panes = A = B = opts = args = null;
@@ -364,7 +388,7 @@ var splitterCounter = 0;
   function browser_resize_auto_fired() {
     // Returns true when the browser natively fires the resize 
     // event attached to the panes elements
-    return ($.browser.msie && (parseInt($.browser.version) < 9));
+    return ($.browser.msie && (parseInt($.browser.version, 10) < 9));
   }
 };
 
