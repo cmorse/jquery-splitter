@@ -137,8 +137,7 @@ $.fn.splitter = function(args) {
       pxPerKey: 8,  // splitter px moved per keypress
       tabIndex: 0,  // tab order indicator
       accessKey: '', // accessKey for splitbar
-      dockSpeed: 1,
-      cookieExpires: 365
+      dockSpeed: 1
     },{
       // user can override
       v: {          // Vertical splitters:
@@ -270,25 +269,12 @@ $.fn.splitter = function(args) {
         parseInt($.css(this[0], opts.split), 10) : opts["size" + this._pane];
     });
     
-    // Determine initial position, get from cookie if specified
+    // Determine initial position
     var initPos = A._init;
+    
     if (!isNaN(B._init)) { // recalc initial B size as an offset from the top or left side
       initPos = splitter[0][opts.pxSplit] - splitter._PBA - B._init - bar._DA;
-    }
-    if (opts.cookie) {
-      if (!$.cookie) {
-        alert('jQuery.splitter(): jQuery cookie plugin required');
-      }
-      initPos = parseInt($.cookie(opts.cookie), 10);
-      $(window).bind("unload" + opts.eventNamespace, function() {
-        var state = String(bar.css(opts.origin)); // current location of splitbar
-        $.cookie(opts.cookie, state, {
-          expires: opts.cookieExpires, 
-          path: opts.cookiePath || document.location.pathname
-        });
-      });
-    }
-    if (isNaN(initPos)) {// King Solomon's algorithm
+    } else if (isNaN(initPos)) {// King Solomon's algorithm
       initPos = Math.round((splitter[0][opts.pxSplit] - splitter._PBA - bar._DA) / 2);
     }
 
