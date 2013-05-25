@@ -73,8 +73,7 @@ var splitterCounter = 0;
            (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min))) {
           bar.addClass(opts.barDockedClass)
              .css(opts.origin, range);
-        }
-        else {
+        } else {
           bar.removeClass(opts.barDockedClass)
              .css(opts.origin, limit);
         }
@@ -94,8 +93,7 @@ var splitterCounter = 0;
       }
       panes.css("-webkit-user-select", "text")
         .find("iframe").removeClass(opts.iframeClass);
-      $(document)
-        .unbind("mousemove" + opts.eventNamespace + " mouseup" + opts.eventNamespace);
+      $(document).unbind("mousemove" + opts.eventNamespace + " mouseup" + opts.eventNamespace);
     }
     function resplit(pos) {
       bar._DA = bar[0][opts.pxSplit];   // bar size may change during dock
@@ -129,6 +127,7 @@ var splitterCounter = 0;
         panes.trigger("resize");
       }
     }
+
     function dimSum(jq, dims) {
       // Opera returns -1 for missing min/max width, turn into 0
       var sum = 0;
@@ -137,7 +136,7 @@ var splitterCounter = 0;
       }
       return sum;
     }
-    
+
     // Determine settings based on incoming opts, element classes, and defaults
     var vh = (args.splitHorizontal ? 'h' : (args.splitVertical ? 'v' : args.type)) || 'v';
     var opts = $.extend({
@@ -187,18 +186,22 @@ var splitterCounter = 0;
     opts.barStateClasses = [opts.barNormalClass, opts.barHoverClass, opts.barActiveClass, opts.barLimitClass].join(' ');
 
     // Create jQuery object closures for splitter and both panes
-    var splitter = $(this).css({position: "relative"}).addClass(opts.splitterClass);
-    var panes = $(">*", splitter[0]).addClass(opts.paneClass).css({
-      position: "absolute",       // positioned inside splitter container
-      "z-index": "1",             // splitbar is positioned above
-      "-moz-outline-style": "none"  // don't show dotted outline
-    });
+    var splitter = $(this)
+      .css("position", "relative")
+      .addClass(opts.splitterClass);
+    var panes = $(">*", splitter[0])
+      .addClass(opts.paneClass)
+      .css({
+        position: "absolute",       // positioned inside splitter container
+        "z-index": "1",             // splitbar is positioned above
+        "-moz-outline-style": "none"  // don't show dotted outline
+      });
     var A = $(panes[0]), // left/top
         B = $(panes[1]); // right/bottom
     opts.dockPane = opts.dock && (/right|bottom/.test(opts.dock)? B:A);
 
     // Focuser element, provides keyboard support; title is shown by Opera accessKeys
-    var focuser = $('<a href="javascript:void(0)"></a>')
+    var focuser = $('<a></a>')
       .attr({
         accessKey: opts.accessKey,
         tabIndex: opts.tabIndex,
@@ -344,7 +347,7 @@ var splitterCounter = 0;
             });
         });
       if (opts.dockKey) {
-        $('<a title="' + opts.splitbarClass + ' toggle dock" href="javascript:void(0)"></a>')
+        $('<a title="' + opts.splitbarClass + ' toggle dock"></a>')
           .attr({
             accessKey: opts.dockKey,
             tabIndex: -1
