@@ -42,7 +42,8 @@ var splitterCounter = 0;
     }
     var zombie;   // left-behind splitbar for outline resizes
     function setBarState(state) {
-      bar.removeClass(opts.barStateClasses).addClass(state);
+      bar.removeClass(opts.barStateClasses)
+        .addClass(state);
     }
     function startSplitMouse(evt) {
       if (evt.which != 1) {
@@ -50,7 +51,7 @@ var splitterCounter = 0;
       }
       bar.removeClass(opts.barHoverClass);
       if (opts.outline) {
-        zombie = zombie || bar.clone(false).insertAfter(A);
+        zombie = zombie || bar.clone().insertAfter(A);
         bar.removeClass(opts.barDockedClass);
       }
       setBarState(opts.barActiveClass);
@@ -70,10 +71,12 @@ var splitterCounter = 0;
         // Let docking splitbar be dragged to the dock position, even if min width applies
         if ((opts.dockPane == A && pos < Math.max(A._min, bar._DA))  || 
            (opts.dockPane == B && pos > Math.min(pos, A._max, splitter._DA - bar._DA - B._min))) {
-          bar.addClass(opts.barDockedClass).css(opts.origin, range);
+          bar.addClass(opts.barDockedClass)
+             .css(opts.origin, range);
         }
         else {
-          bar.removeClass(opts.barDockedClass).css(opts.origin, limit);
+          bar.removeClass(opts.barDockedClass)
+             .css(opts.origin, limit);
         }
         bar._DA = bar[0][opts.pxSplit];
       } else {
@@ -89,7 +92,8 @@ var splitterCounter = 0;
         zombie.remove(); zombie = null;
         resplit(pos);
       }
-      panes.css("-webkit-user-select", "text").find("iframe").removeClass(opts.iframeClass);
+      panes.css("-webkit-user-select", "text")
+        .find("iframe").removeClass(opts.iframeClass);
       $(document)
         .unbind("mousemove" + opts.eventNamespace + " mouseup" + opts.eventNamespace);
     }
@@ -108,14 +112,18 @@ var splitterCounter = 0;
         bar.removeClass(opts.barDockedClass);
         bar._DA = bar[0][opts.pxSplit];
         bar._pos = null;
-        pos = Math.max(A._min, splitter._DA - B._max, 
-            Math.min(pos, A._max, splitter._DA - bar._DA - B._min));
+        pos = Math.max(A._min, splitter._DA - B._max, Math.min(pos, A._max, splitter._DA - bar._DA - B._min));
       }
       // Resize/position the two panes
-      bar.css(opts.origin, pos).css(opts.fixed, splitter._DF);
-      A.css(opts.origin, 0).css(opts.split, pos).css(opts.fixed,  splitter._DF);
+      bar.css(opts.origin, pos);
+      A.css(opts.origin, 0)
+        .css(opts.split, pos);
       B.css(opts.origin, pos + bar._DA)
-        .css(opts.split, splitter._DA - bar._DA - pos).css(opts.fixed,  splitter._DF);
+        .css(opts.split, splitter._DA - bar._DA - pos);
+
+      $().add(bar).add(A).add(B)
+         .css(opts.fixed, splitter._DF);
+        
       // IE fires resize for us; all others pay cash
       if (!browser_resize_auto_fired()) {
         panes.trigger("resize");
@@ -145,7 +153,9 @@ var splitterCounter = 0;
       eventNamespace: ".splitter" + (++splitterCounter),
       pxPerKey: 8,  // splitter px moved per keypress
       tabIndex: 0,  // tab order indicator
-      accessKey: '' // accessKey for splitbar
+      accessKey: '', // accessKey for splitbar
+      dockSpeed: 1,
+      cookieExpires: 365
     },{
       // user can override
       v: {          // Vertical splitters:
@@ -173,6 +183,7 @@ var splitterCounter = 0;
         side1: "Top",  side2: "Bottom", side3: "Left", side4: "Right"
       }
     }[vh]);
+    opts.undockSpeed = opts.undockSpeed || opts.dockSpeed;
     opts.barStateClasses = [opts.barNormalClass, opts.barHoverClass, opts.barActiveClass, opts.barLimitClass].join(' ');
 
     // Create jQuery object closures for splitter and both panes
@@ -194,11 +205,12 @@ var splitterCounter = 0;
         title: opts.splitbarClass
       })
       .bind(($.browser.opera ? "click" : "focus") + opts.eventNamespace, function() {
-        this.focus(); bar.addClass(opts.barActiveClass);
+        this.focus();
+        bar.addClass(opts.barActiveClass);
       })
       .bind("keydown" + opts.eventNamespace, function(e) {
         var key = e.which || e.keyCode;
-        var dir = (key == opts["key" + opts.side1]) ? 1 : (key == opts["key" + opts.side2]) ? -1 : 0;
+        var dir = (key == opts["key" + opts.side1]) ? 1 : ((key == opts["key" + opts.side2]) ? -1 : 0);
         if (dir) {
           resplit(A[0][opts.pxSplit] + dir * opts.pxPerKey, false);
         }
@@ -209,9 +221,10 @@ var splitterCounter = 0;
       
     // Splitbar element
     var bar = $('<div></div>')
-      .insertAfter(A).addClass(opts.barClass).addClass(opts.barStateClass)
+      .insertAfter(A)
+      .addClass(opts.barClass + ' ' + opts.barStateClass)
       .append(focuser)
-      .attr({unselectable: "on"})
+      .attr("unselectable", "on")
       .css({
         position: "absolute",
         "user-select": "none",
@@ -245,7 +258,7 @@ var splitterCounter = 0;
       this._min = opts["min" + this._pane] || dimSum(this, "min-" + opts.split);
       this._max = opts["max" + this._pane] || dimSum(this, "max-" + opts.split) || 9999;
       this._init = (opts["size" + this._pane] === true) ?
-        parseInt($.css(this[0],opts.split), 10) : opts["size" + this._pane];
+        parseInt($.css(this[0], opts.split), 10) : opts["size" + this._pane];
     });
     
     // Determine initial position, get from cookie if specified
@@ -257,11 +270,11 @@ var splitterCounter = 0;
       if (!$.cookie) {
         alert('jQuery.splitter(): jQuery cookie plugin required');
       }
-      initPos = parseInt($.cookie(opts.cookie),10);
+      initPos = parseInt($.cookie(opts.cookie), 10);
       $(window).bind("unload" + opts.eventNamespace, function() {
         var state = String(bar.css(opts.origin)); // current location of splitbar
         $.cookie(opts.cookie, state, {
-          expires: opts.cookieExpires || 365, 
+          expires: opts.cookieExpires, 
           path: opts.cookiePath || document.location.pathname
         });
       });
@@ -312,7 +325,7 @@ var splitterCounter = 0;
           var x = {}; 
           x[opts.origin] = opts.dockPane == A ? 0 :
             (splitter[0][opts.pxSplit] - splitter._PBA - bar[0][opts.pxSplit]);
-          bar.animate(x, opts.dockSpeed || 1, opts.dockEasing, function() {
+          bar.animate(x, opts.dockSpeed, opts.dockEasing, function() {
             bar.addClass(opts.barDockedClass);
             resplit(x[opts.origin]);
           });
@@ -325,7 +338,7 @@ var splitterCounter = 0;
           var x={};
           x[opts.origin] = bar._pos + "px";
           bar.removeClass(opts.barDockedClass)
-            .animate(x, opts.undockSpeed || opts.dockSpeed || 1, opts.undockEasing || opts.dockEasing, function() {
+            .animate(x, opts.undockSpeed, opts.undockEasing || opts.dockEasing, function() {
               resplit(bar._pos);
               bar._pos = null;
             });
@@ -385,6 +398,7 @@ var splitterCounter = 0;
       .trigger("resize" , [initPos]);
   });
 
+  // See: http://stackoverflow.com/questions/5321284/fix-for-jquery-splitter-in-ie9
   function browser_resize_auto_fired() {
     // Returns true when the browser natively fires the resize 
     // event attached to the panes elements
